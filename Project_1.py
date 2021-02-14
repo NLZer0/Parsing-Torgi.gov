@@ -1,22 +1,21 @@
-import requests
-from selenium import webdriver
 from bs4 import BeautifulSoup
 import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+opts = Options()
+opts.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
 
 URL = 'https://torgi.gov.ru/lotSearch1.html'
-HEADERS = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 YaBrowser/20.12.3.140 Yowser/2.5 Safari/537.36',
-    'accept': '*/*',
-}
 
 
-def get_content(url): 
-    driver = webdriver.Chrome()
+def get_content(url, nums_of_pages): 
+    driver = webdriver.Chrome(chrome_options=opts)
     driver.get(url)
     html = driver.page_source
     all_lots = []
     
-    for i in range(10):
+    for i in range(nums_of_pages):
         soup = BeautifulSoup(html,'html.parser')
         main_information = soup.find_all(class_ = 'datarow')
             
@@ -52,6 +51,10 @@ def get_content(url):
         next_page.click()
         time.sleep(5)
         html = driver.page_source
+        
+        persent = int((i+1)*(100/nums_of_pages))
+        persent = str(persent)+'%'
+        print("Завершено:",persent)
 
 
 
@@ -62,9 +65,22 @@ def get_content(url):
 
 
 def parse():
-    get_content(URL)
+
+    print('Введите ссылку раздела, с которого будет скопированна информация (по умолчанию раздел Аренда)')
+    url = str(input())
+    if url == '':
+        url = URL
+
+    print('Введите количество страниц для парсинга (по умолчанию одна)')
+    nums_of_pages = str(input())
+    if nums_of_pages == '':
+        nums_of_pages = '1'
+    if nums_of_pages.isdigit():
+        print('Производится парсинг')
+        get_content(url, int(nums_of_pages))
+    
+
+    
 
 
-
-# write_to_file() - Записываем сайт в файл
 parse()
