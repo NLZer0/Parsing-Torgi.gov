@@ -1,5 +1,7 @@
 import requests
+from selenium import webdriver
 from bs4 import BeautifulSoup
+import time
 
 URL = 'https://torgi.gov.ru/lotSearch1.html'
 HEADERS = {
@@ -7,20 +9,17 @@ HEADERS = {
     'accept': '*/*',
 }
 
-def get_html(url, params = None):
-    r = requests.get(url, headers = HEADERS, params=params)
-    return r
 
-def get_content(html): 
-    
+def get_content(url): 
+    driver = webdriver.Chrome()
+    driver.get(url)
+    html = driver.page_source
     all_lots = []
     
     for i in range(10):
         soup = BeautifulSoup(html,'html.parser')
         main_information = soup.find_all(class_ = 'datarow')
-
- 
-        
+            
         for it in main_information:
 
             organisator = it.find(class_ = 'datacell left').find_next()
@@ -49,36 +48,22 @@ def get_content(html):
                 'Monthly payment' : monthly_payment.text,
             })
 
-        
-        new_href_arr = soup.find(class_ = 'navigation').find_all('a')
-        new_href = new_href_arr[-1].get('href')
-        new_href = URL + new_href
-        html = requests.get(URL, headers = HEADERS)
-        assert html.status_code == 200, "Неудалось открыть сайт"
-        html = html.text
+        next_page = driver.find_element_by_id('id38')
+        next_page.click()
+        time.sleep(5)
+        html = driver.page_source
+
+
 
     for it in all_lots:
             for key, value in it.items():
                 print("{0}: {1}".format(key,value))
             print('\n\n')
 
-def write_to_file():
-    html = get_html(URL)
-    if html.status_code == 200:
-        content = get_content(html.text)
-        file_html = open('Data.html', 'w', encoding='utf-8')
-        file_html.write(content)
-        file_html.close()
-    else:
-        print('Не удалось открыть сайт', html.status_code)
 
 def parse():
-    # file_html = open('Data.html', 'r', encoding='utf-8')
-    # src = file_html.read()
-    # file_html.close()
-    html = get_html(URL)
-    assert html.status_code == 200, "Неудалось открыть сайт"
-    get_content(html.text)
+    get_content(URL)
+
 
 
 # write_to_file() - Записываем сайт в файл
