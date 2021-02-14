@@ -8,7 +8,6 @@ opts.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36
 
 URL = 'https://torgi.gov.ru/lotSearch1.html'
 
-
 def get_content(url, nums_of_pages): 
     driver = webdriver.Chrome(chrome_options=opts)
     driver.get(url)
@@ -47,7 +46,13 @@ def get_content(url, nums_of_pages):
                 'Monthly payment' : monthly_payment.text,
             })
 
-        next_page = driver.find_element_by_id('id38')
+
+        try:
+            next_page = driver.find_element_by_id('id38')
+        except:
+            print("Все существующие страницы уже были распарсены")
+            break
+
         next_page.click()
         time.sleep(5)
         html = driver.page_source
@@ -55,7 +60,6 @@ def get_content(url, nums_of_pages):
         persent = int((i+1)*(100/nums_of_pages))
         persent = str(persent)+'%'
         print("Завершено:",persent)
-
 
 
     for it in all_lots:
@@ -71,16 +75,14 @@ def parse():
     if url == '':
         url = URL
 
+
     print('Введите количество страниц для парсинга (по умолчанию одна)')
     nums_of_pages = str(input())
     if nums_of_pages == '':
         nums_of_pages = '1'
     if nums_of_pages.isdigit():
         print('Производится парсинг')
-        get_content(url, int(nums_of_pages))
-    
-
-    
+        get_content(url, int(nums_of_pages))    
 
 
 parse()
