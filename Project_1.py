@@ -1,12 +1,41 @@
-from bs4 import BeautifulSoup
+import csv
 import time
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 opts = Options()
 opts.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+opts.add_argument('headless')
 
 URL = 'https://torgi.gov.ru/lotSearch1.html'
+
+def Write_to_csv(all_lots:list):
+
+    titles_in_list = ['']*11
+    i = 0
+    for it in all_lots[0]:
+        titles_in_list[i] = it
+        i+=1
+
+    with open('Data.csv', 'w', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile, delimiter=';')
+        writer.writerow(titles_in_list)
+        line = ['']*11
+        
+        for it in all_lots:
+            index = 0
+
+            for item in it:
+                line[index] = it[item]
+                index+=1
+
+            writer.writerow(line)
+                
+
+
+
+
 
 def get_content(url, nums_of_pages): 
     driver = webdriver.Chrome(chrome_options=opts)
@@ -38,7 +67,7 @@ def get_content(url, nums_of_pages):
                 'Lots numbers' : lots_numbers.text,
                 'Type of property' : type_of_property.text,
                 'Square' : square.text,
-                'Specifications' : specifications.text,
+                'Specifications' : specifications.text.replace("\n", ""),
                 'Location' : location.text,
                 'Initial price' : initial_price.text,
                 'Validity period' : validity_period.text,
@@ -61,11 +90,8 @@ def get_content(url, nums_of_pages):
         persent = str(persent)+'%'
         print("Завершено:",persent)
 
-
-    for it in all_lots:
-            for key, value in it.items():
-                print("{0}: {1}".format(key,value))
-            print('\n\n')
+    Write_to_csv(all_lots)
+        
 
 
 def parse():
